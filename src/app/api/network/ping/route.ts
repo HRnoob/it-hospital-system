@@ -17,8 +17,8 @@ export async function POST(request: NextRequest) {
 
     const isWindows = process.platform === 'win32'
     const pingCmd = isWindows
-      ? `ping -n 2 ${host}`
-      : `ping -c 2 ${host}`
+      ? `ping -n 1 ${host}`
+      : `ping -c 1 ${host}`
 
     const { stdout } = await execAsync(pingCmd)
 
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     if (stdout.includes('time=') || stdout.includes('time<')) {
       const match = stdout.match(/time[=:]<?(\d+\.?\d*)/)
       if (match) latency = parseFloat(match[1])
-      status = latency && latency > 100 ? 'SLOW' : 'OK'
+      status = 'OK'
     } else if (stdout.includes('unreachable') || stdout.includes('timed out')) {
       status = 'DOWN'
     }

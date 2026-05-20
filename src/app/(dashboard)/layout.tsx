@@ -12,7 +12,8 @@ import {
   FileText,
   Monitor,
   LogOut,
-  User
+  User,
+  Shield
 } from 'lucide-react'
 
 const menuItems = [
@@ -23,6 +24,7 @@ const menuItems = [
   { icon: KanbanSquare, label: 'Kanban', href: '/kanban' },
   { icon: FileText, label: 'Reports', href: '/reports' },
   { icon: Monitor, label: 'Remote', href: '/remote' },
+  { icon: Shield, label: 'Admin', href: '/admin/users' },
 ]
 
 export default function DashboardLayout({
