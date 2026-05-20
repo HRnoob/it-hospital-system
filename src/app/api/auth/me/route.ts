@@ -1,0 +1,51 @@
+import { NextRequest, NextResponse } from 'next/server'
+import jwt from 'jsonwebtoken'
+import { prisma } from '@/lib/prisma'
+
+const JWT_SECRET = process.env.JWT_SECRET || 'secret'
+
+export async function GET(request: NextRequest) {
+  try {
+    const token = request.cookies.get('accessToken')?.value
+
+    if (!token) {
+      return NextResponse.json(
+        { success: false, message: 'Tidak terautentikasi' },
+        { status: 401 }
+      )
+    }
+
+    const decoded = jwt.verify(token, JWT_SECRET) as {
+      id: string
+      email: string
+      name: string
+      role: string
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.id },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        avatar: true,
+        isActive: true,
+      },
+    })
+
+    if (!user) {
+      return NextResponse.json(
+        { success: false, message: 'User tidak ditemukan' },
+        { status: 401 }
+      )
+    }
+
+    return NextResponse.json({ success: true, data: user })
+  } catch (error) {
+    return NextResponse.json(
+      { success: false, message: 'Token tidak valid' },
+      { status: 401 }
+    )
+  }
+}

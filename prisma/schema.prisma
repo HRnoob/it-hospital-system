@@ -1,0 +1,379 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ========== USER & AUTH ==========
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  password     String
+  role         Role     @default(VIEWER)
+  avatar       String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  activityLogs    ActivityLog[]
+  kanbanCards     KanbanCard[]
+  issuesReported  Issue[]        @relation("ReportedBy")
+  issuesAssigned  Issue[]        @relation("AssignedTo")
+  checklistFilled MorningCheck[]
+  maintenanceDone MaintenanceLog[]
+
+  @@map("users")
+}
+
+enum Role {
+  SUPERADMIN
+  ADMIN
+  VIEWER
+}
+
+// ========== INVENTORY ==========
+model AssetCategory {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  icon        String?
+  description String?
+  createdAt   DateTime @default(now())
+  assets      Asset[]
+
+  @@map("asset_categories")
+}
+
+model Location {
+  id        String  @id @default(cuid())
+  name      String  @unique
+  floor     String?
+  building  String?
+  assets    Asset[]
+
+  @@map("locations")
+}
+
+model Asset {
+  id              String        @id @default(cuid())
+  assetCode       String        @unique
+  name            String
+  brand           String?
+  model           String?
+  serialNumber    String?
+  category        AssetCategory @relation(fields: [categoryId], references: [id])
+  categoryId      String
+  location        Location?     @relation(fields: [locationId], references: [id])
+  locationId      String?
+  assignedTo      String?
+  status          AssetStatus   @default(ACTIVE)
+  condition       AssetCondition @default(GOOD)
+  purchaseDate    DateTime?
+  warrantyExpiry  DateTime?
+  purchasePrice   Decimal?
+  vendor          String?
+  vendorContact   String?
+  ipAddress       String?
+  macAddress      String?
+  osVersion       String?
+  notes           String?
+  qrCodeUrl       String?
+  rustdeskId      String?
+  guacamoleId     String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  issues          Issue[]
+  maintenanceLogs MaintenanceLog[]
+  photos          AssetPhoto[]
+  networkLinks    NetworkAsset[]
+
+  @@map("assets")
+}
+
+enum AssetStatus {
+  ACTIVE
+  INACTIVE
+  MAINTENANCE
+  DISPOSED
+  LOST
+}
+
+enum AssetCondition {
+  EXCELLENT
+  GOOD
+  FAIR
+  POOR
+  BROKEN
+}
+
+model AssetPhoto {
+  id        String   @id @default(cuid())
+  asset     Asset    @relation(fields: [assetId], references: [id])
+  assetId   String
+  url       String
+  caption   String?
+  createdAt DateTime @default(now())
+
+  @@map("asset_photos")
+}
+
+// ========== ISSUE TRACKER ==========
+model Issue {
+  id            String      @id @default(cuid())
+  ticketNumber  String      @unique
+  title         String
+  description   String
+  asset         Asset?      @relation(fields: [assetId], references: [id])
+  assetId       String?
+  priority      Priority    @default(MEDIUM)
+  status        IssueStatus @default(OPEN)
+  category      String?
+  
+  reportedBy    User        @relation("ReportedBy", fields: [reportedById], references: [id])
+  reportedById  String
+  assignedTo    User?       @relation("AssignedTo", fields: [assignedToId], references: [id])
+  assignedToId  String?
+  
+  resolvedAt    DateTime?
+  resolution    String?
+  slaDeadline   DateTime?
+  slaBreached   Boolean     @default(false)
+  
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  timeline      IssueTimeline[]
+  photos        IssuePhoto[]
+
+  @@map("issues")
+}
+
+enum IssueStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING_PARTS
+  RESOLVED
+  CLOSED
+  CANCELLED
+}
+
+enum Priority {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+}
+
+model IssueTimeline {
+  id          String   @id @default(cuid())
+  issue       Issue    @relation(fields: [issueId], references: [id])
+  issueId     String
+  action      String
+  description String?
+  changedBy   String
+  createdAt   DateTime @default(now())
+
+  @@map("issue_timelines")
+}
+
+model IssuePhoto {
+  id        String    @id @default(cuid())
+  issue     Issue     @relation(fields: [issueId], references: [id])
+  issueId   String
+  url       String
+  type      PhotoType
+  caption   String?
+  createdAt DateTime  @default(now())
+
+  @@map("issue_photos")
+}
+
+enum PhotoType {
+  BEFORE
+  AFTER
+}
+
+// ========== MORNING CHECKLIST ==========
+model MorningCheck {
+  id              String   @id @default(cuid())
+  checkDate       DateTime @db.Date
+  filledBy        User     @relation(fields: [filledById], references: [id])
+  filledById      String
+  
+  pingGoogle      PingStatus  @default(UNCHECKED)
+  pingSimrs       PingStatus  @default(UNCHECKED)
+  pingDatabase    PingStatus  @default(UNCHECKED)
+  pingLatencyMs   Json?
+  
+  simrsStatus     ServiceStatus @default(UNCHECKED)
+  pacsStatus      ServiceStatus @default(UNCHECKED)
+  unifiedStatus   ServiceStatus @default(UNCHECKED)
+  
+  upsStatus       PhysicalStatus @default(UNCHECKED)
+  cableStatus     PhysicalStatus @default(UNCHECKED)
+  serverTempOk    Boolean?
+  acStatus        PhysicalStatus @default(UNCHECKED)
+  
+  prtgAlertCount  Int      @default(0)
+  prtgAlerts      Json?
+  prtgNotes       String?
+  
+  totalAP         Int      @default(0)
+  onlineAP        Int      @default(0)
+  offlineAPList   Json?
+  
+  notes           String?
+  overallStatus   OverallStatus @default(NORMAL)
+  
+  completedAt     DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([checkDate, filledById])
+  @@map("morning_checks")
+}
+
+enum PingStatus {
+  UNCHECKED
+  OK
+  SLOW
+  DOWN
+}
+
+enum ServiceStatus {
+  UNCHECKED
+  RUNNING
+  DEGRADED
+  DOWN
+}
+
+enum PhysicalStatus {
+  UNCHECKED
+  OK
+  ISSUE
+  CRITICAL
+}
+
+enum OverallStatus {
+  NORMAL
+  WARNING
+  CRITICAL
+}
+
+// ========== KANBAN ==========
+model KanbanCard {
+  id          String       @id @default(cuid())
+  title       String
+  description String?
+  column      KanbanColumn @default(TODO)
+  priority    Priority     @default(MEDIUM)
+  dueDate     DateTime?
+  assignedTo  User?        @relation(fields: [assignedToId], references: [id])
+  assignedToId String?
+  labels      String[]
+  position    Int          @default(0)
+  relatedIssueId String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@map("kanban_cards")
+}
+
+enum KanbanColumn {
+  TODO
+  DOING
+  DONE
+}
+
+// ========== MAINTENANCE ==========
+model MaintenanceSchedule {
+  id            String   @id @default(cuid())
+  title         String
+  description   String?
+  assetId       String?
+  category      String?
+  frequency     String
+  nextDueDate   DateTime
+  assignedToName String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  
+  logs MaintenanceLog[]
+
+  @@map("maintenance_schedules")
+}
+
+model MaintenanceLog {
+  id              String   @id @default(cuid())
+  schedule        MaintenanceSchedule @relation(fields: [scheduleId], references: [id])
+  scheduleId      String
+  asset           Asset?   @relation(fields: [assetId], references: [id])
+  assetId         String?
+  doneBy          User     @relation(fields: [doneById], references: [id])
+  doneById        String
+  notes           String?
+  result          String?
+  performedAt     DateTime
+  createdAt       DateTime @default(now())
+
+  @@map("maintenance_logs")
+}
+
+// ========== NETWORK MONITORING ==========
+model NetworkTarget {
+  id          String  @id @default(cuid())
+  name        String
+  host        String
+  type        String
+  port        Int?
+  isActive    Boolean @default(true)
+  category    String?
+
+  @@map("network_targets")
+}
+
+model NetworkAsset {
+  id        String   @id @default(cuid())
+  asset     Asset    @relation(fields: [assetId], references: [id])
+  assetId   String
+  ipAddress String
+  macAddress String?
+  port      Int?
+  notes     String?
+  createdAt DateTime @default(now())
+
+  @@map("network_assets")
+}
+
+// ========== ACTIVITY LOG ==========
+model ActivityLog {
+  id          String   @id @default(cuid())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+  action      String
+  module      String
+  targetId    String?
+  targetName  String?
+  detail      Json?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  @@map("activity_logs")
+}
+
+// ========== SYSTEM SETTINGS ==========
+model SystemSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  label     String?
+  group     String?
+  updatedAt DateTime @updatedAt
+
+  @@map("system_settings")
+}
