@@ -2,17 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import {
-  Plus,
-  Edit,
-  Trash2,
-  Key,
-  ChevronLeft,
-  ChevronRight,
-  Search,
-  UserPlus,
-  ShieldAlert,
-} from 'lucide-react'
+import { Plus, Edit, Trash2, Key, ChevronLeft, ChevronRight, Search, UserPlus, ShieldAlert } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 interface User {
@@ -168,12 +158,12 @@ export default function AdminUsersPage() {
 
   const getRoleBadge = (role: string) => {
     const styles = {
-      SUPERADMIN: 'bg-red-100 text-red-800',
-      ADMIN: 'bg-yellow-100 text-yellow-800',
-      VIEWER: 'bg-blue-100 text-blue-800',
+      SUPERADMIN: 'bg-red-500/20 text-red-500 border border-red-500/30',
+      ADMIN: 'bg-yellow-500/20 text-yellow-500 border border-yellow-500/30',
+      VIEWER: 'bg-blue-500/20 text-blue-500 border border-blue-500/30',
     }
     return (
-      <span className={`px-2 py-1 rounded text-xs font-medium ${styles[role as keyof typeof styles]}`}>
+      <span className={`px-2 py-1 rounded text-xs font-mono ${styles[role as keyof typeof styles]}`}>
         {role}
       </span>
     )
@@ -182,22 +172,19 @@ export default function AdminUsersPage() {
   if (checking) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     )
   }
 
   if (userRole !== 'SUPERADMIN') {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-12 text-center">
-        <ShieldAlert className="w-16 h-16 text-red-500 mx-auto mb-4" />
-        <h2 className="text-xl font-bold text-red-700">Akses Ditolak</h2>
-        <p className="text-red-600 mt-2">Halaman ini hanya dapat diakses oleh SUPERADMIN.</p>
-        <button
-          onClick={() => router.push('/dashboard')}
-          className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-        >
-          Kembali ke Dashboard
+      <div className="bg-destructive/10 border border-destructive/30 rounded-xl p-12 text-center">
+        <ShieldAlert className="w-16 h-16 text-destructive mx-auto mb-4" />
+        <h2 className="text-xl font-bold text-destructive">ACCESS DENIED</h2>
+        <p className="text-destructive/80 mt-2 font-mono">Halaman ini hanya dapat diakses oleh SUPERADMIN.</p>
+        <button onClick={() => router.push('/dashboard')} className="mt-4 px-4 py-2 bg-destructive/20 hover:bg-destructive/30 border border-destructive/50 rounded-lg text-destructive transition-colors">
+          BACK TO DASHBOARD
         </button>
       </div>
     )
@@ -205,77 +192,81 @@ export default function AdminUsersPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">Manajemen User</h1>
-          <p className="text-gray-500 mt-1">Kelola akses dan role pengguna sistem</p>
+      {/* Header Industrial */}
+      <div className="mb-8 border-b border-border pb-4">
+        <div className="flex justify-between items-end">
+          <div>
+            <div className="flex items-center gap-3">
+              <div className="w-1 h-8 bg-primary rounded-full animate-pulse" />
+              <h1 className="text-3xl font-bold tracking-tight text-foreground">USER MANAGEMENT</h1>
+            </div>
+            <p className="text-muted-foreground font-mono text-sm mt-2 ml-4">
+              Access Control — Role Management
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              setEditingUser(null)
+              setForm({ name: '', email: '', password: '', role: 'VIEWER', isActive: true })
+              setShowModal(true)
+            }}
+            className="flex items-center gap-2 bg-primary/20 hover:bg-primary/30 border border-primary/50 rounded-lg px-4 py-2 font-mono text-sm transition-all duration-300 text-primary"
+          >
+            <UserPlus className="w-4 h-4" />
+            ADD USER
+          </button>
         </div>
-        <button
-          onClick={() => {
-            setEditingUser(null)
-            setForm({ name: '', email: '', password: '', role: 'VIEWER', isActive: true })
-            setShowModal(true)
-          }}
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-        >
-          <UserPlus className="w-4 h-4" />
-          Tambah User
-        </button>
       </div>
 
       {/* Search */}
-      <div className="bg-white rounded-lg shadow p-4 mb-6">
+      <div className="bg-card border border-border rounded-xl shadow p-4 mb-6">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
             type="text"
             placeholder="Cari user (nama atau email)..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full pl-9 pr-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background text-foreground placeholder:text-muted-foreground/50 font-mono text-sm"
           />
         </div>
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="bg-card border border-border rounded-xl shadow overflow-hidden">
         <table className="w-full">
-          <thead className="bg-gray-50 border-b">
+          <thead className="bg-secondary border-b border-border">
             <tr>
-              <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Nama</th>
-              <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Email</th>
-              <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Role</th>
-              <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Status</th>
-              <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Aksi</th>
+              <th className="text-left px-6 py-3 text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider">NAME</th>
+              <th className="text-left px-6 py-3 text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider">EMAIL</th>
+              <th className="text-left px-6 py-3 text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider">ROLE</th>
+              <th className="text-left px-6 py-3 text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider">STATUS</th>
+              <th className="text-left px-6 py-3 text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider">ACTIONS</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
+          <tbody className="divide-y divide-border">
             {loading ? (
               <tr>
-                <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600 mx-auto"></div>
-                  <p className="mt-2">Memuat data...</p>
+                <td colSpan={5} className="px-6 py-12 text-center">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary mx-auto"></div>
+                  <p className="mt-2 text-muted-foreground font-mono text-sm">LOADING DATA...</p>
                 </td>
               </tr>
             ) : users.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
-                  Belum ada user
+                <td colSpan={5} className="px-6 py-12 text-center">
+                  <p className="text-muted-foreground font-mono text-sm">NO USERS FOUND</p>
                 </td>
               </tr>
             ) : (
               users.map((user) => (
-                <tr key={user.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 font-medium">{user.name}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{user.email}</td>
+                <tr key={user.id} className="hover:bg-secondary/30 transition-colors duration-150">
+                  <td className="px-6 py-4 font-medium text-foreground">{user.name}</td>
+                  <td className="px-6 py-4 text-sm font-mono text-muted-foreground">{user.email}</td>
                   <td className="px-6 py-4">{getRoleBadge(user.role)}</td>
                   <td className="px-6 py-4">
-                    <span
-                      className={`px-2 py-1 rounded text-xs ${
-                        user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                      }`}
-                    >
-                      {user.isActive ? 'Active' : 'Inactive'}
+                    <span className={`px-2 py-1 rounded text-xs font-mono ${user.isActive ? 'bg-green-500/20 text-green-500 border border-green-500/30' : 'bg-red-500/20 text-red-500 border border-red-500/30'}`}>
+                      {user.isActive ? 'ACTIVE' : 'INACTIVE'}
                     </span>
                   </td>
                   <td className="px-6 py-4">
@@ -283,31 +274,22 @@ export default function AdminUsersPage() {
                       <button
                         onClick={() => {
                           setEditingUser(user)
-                          setForm({
-                            name: user.name,
-                            email: user.email,
-                            password: '',
-                            role: user.role,
-                            isActive: user.isActive,
-                          })
+                          setForm({ name: user.name, email: user.email, password: '', role: user.role, isActive: user.isActive })
                           setShowModal(true)
                         }}
-                        className="p-1 text-yellow-600 hover:text-yellow-800"
-                        title="Edit"
+                        className="p-1 text-yellow-500 hover:text-yellow-400 transition-colors"
                       >
                         <Edit className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleResetPassword(user.id, user.name)}
-                        className="p-1 text-blue-600 hover:text-blue-800"
-                        title="Reset Password"
+                        className="p-1 text-primary hover:text-primary/80 transition-colors"
                       >
                         <Key className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDelete(user.id, user.name)}
-                        className="p-1 text-red-600 hover:text-red-800"
-                        title="Hapus"
+                        className="p-1 text-destructive hover:text-destructive/80 transition-colors"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -320,25 +302,13 @@ export default function AdminUsersPage() {
         </table>
 
         {totalPages > 1 && (
-          <div className="flex justify-between items-center px-6 py-4 border-t">
-            <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
-              className="flex items-center gap-1 px-3 py-1 border rounded disabled:opacity-50"
-            >
-              <ChevronLeft className="w-4 h-4" />
-              Sebelumnya
+          <div className="flex justify-between items-center px-6 py-4 border-t border-border">
+            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="flex items-center gap-1 px-3 py-1 border border-border rounded-lg disabled:opacity-50 hover:bg-secondary transition-colors font-mono text-sm text-foreground">
+              <ChevronLeft className="w-4 h-4" /> PREV
             </button>
-            <span className="text-sm text-gray-600">
-              Halaman {page} dari {totalPages}
-            </span>
-            <button
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages}
-              className="flex items-center gap-1 px-3 py-1 border rounded disabled:opacity-50"
-            >
-              Selanjutnya
-              <ChevronRight className="w-4 h-4" />
+            <span className="text-sm font-mono text-muted-foreground">PAGE {page} OF {totalPages}</span>
+            <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="flex items-center gap-1 px-3 py-1 border border-border rounded-lg disabled:opacity-50 hover:bg-secondary transition-colors font-mono text-sm text-foreground">
+              NEXT <ChevronRight className="w-4 h-4" />
             </button>
           </div>
         )}
@@ -346,81 +316,41 @@ export default function AdminUsersPage() {
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h2 className="text-xl font-bold mb-4">{editingUser ? 'Edit User' : 'Tambah User Baru'}</h2>
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+          <div className="bg-card border border-border rounded-xl p-6 max-w-md w-full mx-4">
+            <h2 className="text-xl font-bold text-foreground mb-4">{editingUser ? 'EDIT USER' : 'ADD NEW USER'}</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Nama</label>
-                <input
-                  type="text"
-                  required
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                <label className="block text-xs font-mono text-muted-foreground mb-1">NAME</label>
+                <input type="text" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full p-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background text-foreground font-mono" />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Email</label>
-                <input
-                  type="email"
-                  required
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                <label className="block text-xs font-mono text-muted-foreground mb-1">EMAIL</label>
+                <input type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="w-full p-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background text-foreground font-mono" />
               </div>
               {!editingUser && (
                 <div>
-                  <label className="block text-sm font-medium mb-1">Password</label>
-                  <input
-                    type="password"
-                    required
-                    value={form.password}
-                    onChange={(e) => setForm({ ...form, password: e.target.value })}
-                    className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+                  <label className="block text-xs font-mono text-muted-foreground mb-1">PASSWORD</label>
+                  <input type="password" required value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="w-full p-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background text-foreground font-mono" />
                 </div>
               )}
               <div>
-                <label className="block text-sm font-medium mb-1">Role</label>
-                <select
-                  value={form.role}
-                  onChange={(e) => setForm({ ...form, role: e.target.value })}
-                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="SUPERADMIN">Super Admin</option>
-                  <option value="ADMIN">Admin</option>
-                  <option value="VIEWER">Viewer</option>
+                <label className="block text-xs font-mono text-muted-foreground mb-1">ROLE</label>
+                <select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} className="w-full p-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background text-foreground font-mono">
+                  <option value="SUPERADMIN">SUPERADMIN</option>
+                  <option value="ADMIN">ADMIN</option>
+                  <option value="VIEWER">VIEWER</option>
                 </select>
               </div>
               {editingUser && (
-                <div>
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={form.isActive}
-                      onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
-                      className="w-4 h-4"
-                    />
-                    <span className="text-sm">Aktif</span>
-                  </label>
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} className="w-4 h-4 rounded border-border text-primary focus:ring-primary" />
+                  <label className="text-sm font-mono text-foreground">ACTIVE</label>
                 </div>
               )}
               <div className="flex gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                >
-                  Simpan
-                </button>
+                <button type="button" onClick={() => setShowModal(false)} className="flex-1 px-4 py-2 border border-border rounded-lg hover:bg-secondary transition-colors font-mono text-foreground">CANCEL</button>
+                <button type="submit" className="flex-1 px-4 py-2 bg-primary/20 hover:bg-primary/30 border border-primary/50 rounded-lg text-primary transition-colors font-mono">SAVE</button>
               </div>
             </form>
           </div>

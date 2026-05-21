@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'default-secret-change-me'
+const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-jwt-key-32-chars-minimum'
 
 export interface JWTPayload {
   id: string
@@ -9,8 +9,8 @@ export interface JWTPayload {
   role: string
 }
 
-export function signJWT(payload: JWTPayload, expiresIn: string = '15m'): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn })
+export function signJWT(payload: JWTPayload, expiresIn: string | number = '15m'): string {
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: expiresIn as any })
 }
 
 export function verifyJWT(token: string): Promise<JWTPayload> {
@@ -23,7 +23,7 @@ export function verifyJWT(token: string): Promise<JWTPayload> {
 }
 
 export function signRefreshToken(payload: { id: string }): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' })
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' as any })
 }
 
 export function verifyRefreshToken(token: string): Promise<{ id: string }> {

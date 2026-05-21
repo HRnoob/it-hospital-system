@@ -104,9 +104,17 @@ export default function RemotePage() {
   return (
     <div>
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Remote Access</h1>
-        <p className="text-gray-500 mt-1">Akses remote PC, laptop, dan server dari dalam/luar kantor</p>
+      <div className="mb-8 border-b border-border pb-4">
+        <div className="flex items-center gap-3">
+          <div className="w-1 h-8 bg-primary rounded-full animate-pulse" />
+          <h1 className="text-3xl font-bold tracking-tight">REMOTE ACCESS</h1>
+          <span className="text-xs text-muted-foreground font-mono ml-auto">
+            <span className="text-green-500">●</span> {devices.length} devices
+          </span>
+        </div>
+        <p className="text-muted-foreground font-mono text-sm mt-2 ml-4">
+          Secure Remote Control — RustDesk · Guacamole
+        </p>
       </div>
 
       {/* Search */}

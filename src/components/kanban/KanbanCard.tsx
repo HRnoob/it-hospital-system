@@ -10,7 +10,7 @@ interface KanbanCardProps {
   title: string
   priority: string
   dueDate: string | null
-  assignee: string | null
+   assignee: string | null | undefined  // Tambah undefined
   labels: string[]
   onClick: () => void
   onDelete: () => void

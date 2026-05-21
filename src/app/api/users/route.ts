@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { prisma, Role } from '@/lib/prisma'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
 import { cookies } from 'next/headers'
@@ -36,14 +36,16 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20')
     const skip = (page - 1) * limit
 
-    const where = search
-      ? {
-          OR: [
-            { name: { contains: search, mode: 'insensitive' } },
-            { email: { contains: search, mode: 'insensitive' } },
-          ],
-        }
-      : {}
+    // Build where clause - tanpa mode
+    let where: any = {}
+    if (search) {
+      where = {
+        OR: [
+          { name: { contains: search } },
+          { email: { contains: search } },
+        ]
+      }
+    }
 
     const [users, total] = await Promise.all([
       prisma.user.findMany({
@@ -119,7 +121,7 @@ export async function POST(request: NextRequest) {
         name: body.name,
         email: body.email,
         password: hashedPassword,
-        role: body.role || 'VIEWER',
+        role: body.role as Role || 'VIEWER',
         isActive: body.isActive !== undefined ? body.isActive : true,
       },
       select: {

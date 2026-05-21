@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import jwt from 'jsonwebtoken'
 import { cookies } from 'next/headers'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'secret'
+const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-jwt-key-32-chars-minimum'
 
 export async function GET() {
   try {
@@ -19,7 +19,7 @@ export async function GET() {
 
     const decoded = jwt.verify(token, JWT_SECRET) as { id: string }
 
-    const [totalAssets, openIssues, inProgressIssues, todayCheck] = await Promise.all([
+    const [totalAssets, openIssues, inProgressIssues, todayCheck, criticalIssues, highIssues] = await Promise.all([
       prisma.asset.count(),
       prisma.issue.count({ where: { status: 'OPEN' } }),
       prisma.issue.count({ where: { status: 'IN_PROGRESS' } }),
@@ -29,7 +29,41 @@ export async function GET() {
           filledById: decoded.id,
         },
       }),
+      prisma.issue.count({ 
+        where: { 
+          priority: 'CRITICAL', 
+          status: { notIn: ['RESOLVED', 'CLOSED', 'CANCELLED'] }
+        } 
+      }),
+      prisma.issue.count({ 
+        where: { 
+          priority: 'HIGH', 
+          status: { notIn: ['RESOLVED', 'CLOSED', 'CANCELLED'] }
+        } 
+      }),
     ])
+
+    // Hitung uptime dari morning check (30 hari terakhir)
+    const thirtyDaysAgo = new Date()
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+    
+    const morningChecks = await prisma.morningCheck.findMany({
+      where: {
+        checkDate: { gte: thirtyDaysAgo },
+      },
+      select: {
+        pingGoogle: true,
+        pingSimrs: true,
+        pingDatabase: true,
+      }
+    })
+    
+    let totalChecks = morningChecks.length
+    let successfulChecks = morningChecks.filter(
+      check => check.pingGoogle === 'OK' && check.pingSimrs === 'OK' && check.pingDatabase === 'OK'
+    ).length
+    
+    const uptime = totalChecks > 0 ? Math.round((successfulChecks / totalChecks) * 100 * 10) / 10 : 99.9
 
     return NextResponse.json({
       success: true,
@@ -38,6 +72,9 @@ export async function GET() {
         openIssues,
         inProgressIssues,
         todayCheck: todayCheck > 0,
+        criticalIssues,
+        highIssues,
+        uptime,
       },
     })
   } catch (error) {

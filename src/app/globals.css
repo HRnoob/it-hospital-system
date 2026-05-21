@@ -1,3 +1,284 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Syne:wght@400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+    --primary: 199 89% 48%;
+    --primary-foreground: 222 47% 11%;
+    --secondary: 217 32% 17%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217 32% 17%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 199 89% 48%;
+    --accent-foreground: 222 47% 11%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217 32% 20%;
+    --ring: 199 89% 48%;
+    --radius: 0.75rem;
+    --success: 142 76% 36%;
+    --warning: 38 92% 50%;
+    --critical: 0 84% 60%;
+    --info: 199 89% 48%;
+  }
+
+  .light {
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+    --primary: 199 89% 48%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 199 89% 48%;
+    --accent-foreground: 0 0% 100%;
+    --border: 214 32% 91%;
+    --ring: 199 89% 48%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Syne', sans-serif;
+  }
+
+  code, pre, .font-mono, .asset-code, .ticket-number, .ip-address {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 500;
+  }
+
+  h1, h2, h3, .heading {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .glow-success {
+    box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+  }
+
+  .glow-warning {
+    box-shadow: 0 0 8px rgba(245, 158, 11, 0.5);
+  }
+
+  .glow-critical {
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.6);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+
+  .noise-bg {
+    position: relative;
+  }
+
+  .noise-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .grid-bg {
+    background-image: 
+      linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  .stagger-item {
+    animation: fadeInUp 0.4s ease-out forwards;
+    opacity: 0;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .stagger-item:nth-child(1) { animation-delay: 0.05s; }
+  .stagger-item:nth-child(2) { animation-delay: 0.1s; }
+  .stagger-item:nth-child(3) { animation-delay: 0.15s; }
+  .stagger-item:nth-child(4) { animation-delay: 0.2s; }
+  .stagger-item:nth-child(5) { animation-delay: 0.25s; }
+  .stagger-item:nth-child(6) { animation-delay: 0.3s; }
+}
+
+/* ==========================================
+   THEME OVERRIDE — Fix hardcoded colors
+   ========================================== */
+
+/* Background overrides */
+.bg-white {
+  background-color: hsl(var(--background)) !important;
+}
+
+.bg-gray-50,
+.bg-gray-100 {
+  background-color: hsl(var(--secondary)) !important;
+}
+
+.bg-gray-200 {
+  background-color: hsl(var(--muted)) !important;
+}
+
+/* Text color overrides */
+.text-gray-800,
+.text-gray-900,
+.text-gray-700 {
+  color: hsl(var(--foreground)) !important;
+}
+
+.text-gray-600,
+.text-gray-500 {
+  color: hsl(var(--muted-foreground)) !important;
+}
+
+.text-gray-400,
+.text-gray-300 {
+  color: hsl(var(--muted-foreground) / 0.7) !important;
+}
+
+/* Border overrides */
+.border-gray-200,
+.border-gray-300 {
+  border-color: hsl(var(--border)) !important;
+}
+
+/* Input field overrides */
+input, select, textarea {
+  background-color: hsl(var(--background)) !important;
+  color: hsl(var(--foreground)) !important;
+  border-color: hsl(var(--border)) !important;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: hsl(var(--ring)) !important;
+  outline: none;
+  outline-color: hsl(var(--ring)) !important;
+}
+
+/* Table overrides */
+table {
+  background-color: hsl(var(--background)) !important;
+}
+
+td, th {
+  border-bottom-color: hsl(var(--border)) !important;
+}
+
+/* Button overrides */
+button.bg-gray-100 {
+  background-color: hsl(var(--secondary)) !important;
+  color: hsl(var(--secondary-foreground)) !important;
+}
+
+button.bg-gray-100:hover {
+  background-color: hsl(var(--muted)) !important;
+}
+
+/* Modal overrides */
+.fixed.inset-0.bg-black.bg-opacity-50 {
+  background-color: rgb(0 0 0 / 0.7) !important;
+}
+
+/* Dark mode specific toast */
+.dark .go-toast {
+  background-color: hsl(var(--secondary)) !important;
+  color: hsl(var(--foreground)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+}
+
+/* Select dropdown */
+option {
+  background-color: hsl(var(--background)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+/* Placeholder */
+::placeholder {
+  color: hsl(var(--muted-foreground) / 0.5) !important;
+}
+
+/* Disabled state */
+.disabled, [disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Loading spinner */
+.animate-spin {
+  border-top-color: hsl(var(--primary)) !important;
+}
+
+/* Fix hover putih di issues */
+.hover\:bg-gray-50:hover,
+.hover\:bg-white:hover,
+tr.hover\:bg-gray-50:hover,
+tr.hover\:bg-white:hover {
+  background-color: hsl(var(--secondary) / 0.5) !important;
+}
+
+/* ==========================================
+   UTILITY CLASSES
+   ========================================== */
+
+@layer components {
+  .card-theme {
+    @apply bg-card border border-border rounded-lg shadow-sm;
+  }
+  
+  .input-theme {
+    @apply bg-background border border-border rounded-lg px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary;
+  }
+  
+  .btn-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-lg transition-all duration-200;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 px-4 py-2 rounded-lg transition-all duration-200;
+  }
+  
+  .btn-outline {
+    @apply border border-border bg-background hover:bg-secondary text-foreground px-4 py-2 rounded-lg transition-all duration-200;
+  }
+  
+  .badge-success {
+    @apply bg-green-500/20 text-green-500 px-2 py-0.5 rounded text-xs font-mono;
+  }
+  
+  .badge-warning {
+    @apply bg-yellow-500/20 text-yellow-500 px-2 py-0.5 rounded text-xs font-mono;
+  }
+  
+  .badge-critical {
+    @apply bg-red-500/20 text-red-500 px-2 py-0.5 rounded text-xs font-mono animate-pulse;
+  }
+  
+  .badge-info {
+    @apply bg-primary/20 text-primary px-2 py-0.5 rounded text-xs font-mono;
+  }
+}

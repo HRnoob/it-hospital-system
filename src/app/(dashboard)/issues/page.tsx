@@ -101,49 +101,55 @@ export default function IssuesPage() {
   return (
     <div>
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">Issue Tracker</h1>
-          <p className="text-gray-500 mt-1">Kelola semua laporan kerusakan dan masalah IT</p>
+      <div className="mb-8 border-b border-border pb-4">
+        <div className="flex justify-between items-end">
+          <div>
+            <div className="flex items-center gap-3">
+              <div className="w-1 h-8 bg-primary rounded-full animate-pulse" />
+              <h1 className="text-3xl font-bold tracking-tight">ISSUE TRACKER</h1>
+            </div>
+            <p className="text-muted-foreground font-mono text-sm mt-2 ml-4">
+              Incident Management — SLA Monitoring
+            </p>
+          </div>
+          <Link
+            href="/issues/add"
+            className="flex items-center gap-2 bg-primary/20 hover:bg-primary/30 border border-primary/50 rounded-lg px-4 py-2 font-mono text-sm transition-all duration-300"
+          >
+            <Plus className="w-4 h-4" />
+            REPORT ISSUE
+          </Link>
         </div>
-        <Link
-          href="/issues/add"
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
-        >
-          <Plus className="w-4 h-4" />
-          Lapor Kerusakan
-        </Link>
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-lg shadow p-4 mb-6">
+      <div className="bg-card border border-border rounded-lg shadow p-4 mb-6">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
               type="text"
               placeholder="Cari tiket atau judul..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full pl-9 pr-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background text-foreground placeholder:text-muted-foreground/50"
             />
           </div>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background text-foreground"
           >
             <option value="">Semua Status</option>
             <option value="OPEN">Open</option>
             <option value="IN_PROGRESS">In Progress</option>
-            <option value="WAITING_PARTS">Waiting Parts</option>
             <option value="RESOLVED">Resolved</option>
             <option value="CLOSED">Closed</option>
           </select>
           <select
             value={priorityFilter}
             onChange={(e) => setPriorityFilter(e.target.value)}
-            className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background text-foreground"
           >
             <option value="">Semua Prioritas</option>
             <option value="CRITICAL">Critical</option>

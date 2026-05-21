@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { prisma, Role } from '@/lib/prisma'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
 import { cookies } from 'next/headers'
@@ -70,10 +70,16 @@ export async function PUT(
 
     const body = await request.json()
 
-    const updateData: { name?: string; email?: string; role?: string; isActive?: boolean } = {}
+    const updateData: {
+      name?: string
+      email?: string
+      role?: Role
+      isActive?: boolean
+    } = {}
+
     if (body.name !== undefined) updateData.name = body.name
     if (body.email !== undefined) updateData.email = body.email
-    if (body.role !== undefined) updateData.role = body.role
+    if (body.role !== undefined) updateData.role = body.role as Role
     if (body.isActive !== undefined) updateData.isActive = body.isActive
 
     const user = await prisma.user.update({

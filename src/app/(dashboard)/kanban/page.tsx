@@ -204,21 +204,28 @@ export default function KanbanPage() {
   return (
     <div>
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">Kanban Board</h1>
-          <p className="text-gray-500 mt-1">Drag & drop task untuk update progress</p>
+      <div className="mb-8 border-b border-border pb-4">
+        <div className="flex justify-between items-end">
+          <div>
+            <div className="flex items-center gap-3">
+              <div className="w-1 h-8 bg-primary rounded-full animate-pulse" />
+              <h1 className="text-3xl font-bold tracking-tight">KANBAN BOARD</h1>
+            </div>
+            <p className="text-muted-foreground font-mono text-sm mt-2 ml-4">
+              Task Management — Drag & Drop Workflow
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              setEditingCard(null)
+              setModalOpen(true)
+            }}
+            className="flex items-center gap-2 bg-primary/20 hover:bg-primary/30 border border-primary/50 rounded-lg px-4 py-2 font-mono text-sm transition-all duration-300"
+          >
+            <Plus className="w-4 h-4" />
+            ADD TASK
+          </button>
         </div>
-        <button
-          onClick={() => {
-            setEditingCard(null)
-            setModalOpen(true)
-          }}
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
-        >
-          <Plus className="w-4 h-4" />
-          Tambah Task
-        </button>
       </div>
 
       {/* Kanban Board */}
@@ -251,7 +258,7 @@ export default function KanbanPage() {
                     title={card.title}
                     priority={card.priority}
                     dueDate={card.dueDate}
-                    assignee={card.assignedTo?.name}
+                    assignee={card.assignedTo?.name || null}
                     labels={card.labels}
                     onClick={() => {
                       setEditingCard(card)

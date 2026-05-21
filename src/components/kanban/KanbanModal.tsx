@@ -91,7 +91,7 @@ export function KanbanModal({ isOpen, onClose, onSave, card, users }: KanbanModa
               required
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
-              className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full p-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background text-foreground"
             />
           </div>
 

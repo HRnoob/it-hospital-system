@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import jwt from 'jsonwebtoken'
 import { cookies } from 'next/headers'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-jwt-key-32-chars-minimum!'
+const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-jwt-key-32-chars-minimum'
 
 export async function POST(request: NextRequest) {
   try {
@@ -30,21 +30,13 @@ export async function POST(request: NextRequest) {
 
     switch (type) {
       case 'daily_summary':
-        // Morning check
         const morningCheck = await prisma.morningCheck.findFirst({
-          where: {
-            checkDate: start,
-          },
-          include: {
-            filledBy: { select: { name: true } },
-          },
+          where: { checkDate: start },
+          include: { filledBy: { select: { name: true } } },
         })
 
-        // Issues hari itu
         const issues = await prisma.issue.findMany({
-          where: {
-            createdAt: { gte: start, lte: end },
-          },
+          where: { createdAt: { gte: start, lte: end } },
           include: {
             asset: { select: { name: true, assetCode: true } },
             reportedBy: { select: { name: true } },
@@ -55,7 +47,6 @@ export async function POST(request: NextRequest) {
         break
 
       case 'monthly_summary':
-        // Statistik bulanan
         const [totalAssets, openIssues, resolvedIssues, totalMorningChecks] = await Promise.all([
           prisma.asset.count(),
           prisma.issue.count({ where: { status: { not: 'RESOLVED' } } }),
@@ -66,20 +57,16 @@ export async function POST(request: NextRequest) {
             },
           }),
           prisma.morningCheck.count({
-            where: {
-              checkDate: { gte: start, lte: end },
-            },
+            where: { checkDate: { gte: start, lte: end } },
           }),
         ])
 
-        // Issues by priority
         const issuesByPriority = await prisma.issue.groupBy({
           by: ['priority'],
           where: { createdAt: { gte: start, lte: end } },
           _count: true,
         })
 
-        // Issues by status
         const issuesByStatus = await prisma.issue.groupBy({
           by: ['status'],
           where: { createdAt: { gte: start, lte: end } },
@@ -98,37 +85,43 @@ export async function POST(request: NextRequest) {
         break
 
       case 'asset_report':
-        // Laporan inventaris
         const assets = await prisma.asset.findMany({
-          include: {
-            category: true,
-            location: true,
-          },
+          include: { category: true, location: true },
           orderBy: { createdAt: 'desc' },
         })
 
-        const assetsByCategory = await prisma.asset.groupBy({
-          by: ['categoryId'],
-          _count: true,
-          include: {
-            category: true,
-          },
-        })
+        // Hitung per kategori (manual)
+        const categoryMap: Record<string, { category: any; count: number }> = {}
+        for (const asset of assets) {
+          if (asset.categoryId && asset.category) {
+            if (!categoryMap[asset.categoryId]) {
+              categoryMap[asset.categoryId] = { category: asset.category, count: 0 }
+            }
+            categoryMap[asset.categoryId].count++
+          }
+        }
+        const assetsByCategory = Object.values(categoryMap).map(item => ({
+          categoryId: item.category.id,
+          category: item.category,
+          _count: { count: item.count },
+        }))
 
-        const assetsByStatus = await prisma.asset.groupBy({
-          by: ['status'],
-          _count: true,
-        })
+        // Hitung per status
+        const statusMap: Record<string, number> = {}
+        for (const asset of assets) {
+          statusMap[asset.status] = (statusMap[asset.status] || 0) + 1
+        }
+        const assetsByStatus = Object.entries(statusMap).map(([status, count]) => ({
+          status,
+          _count: { count },
+        }))
 
         data = { assets, assetsByCategory, assetsByStatus, totalAssets: assets.length }
         break
 
       case 'issue_report':
-        // Laporan kerusakan
         const issueList = await prisma.issue.findMany({
-          where: {
-            createdAt: { gte: start, lte: end },
-          },
+          where: { createdAt: { gte: start, lte: end } },
           include: {
             asset: { select: { name: true, assetCode: true } },
             reportedBy: { select: { name: true } },
@@ -137,20 +130,9 @@ export async function POST(request: NextRequest) {
           orderBy: { createdAt: 'desc' },
         })
 
-        const avgResolutionTime = await prisma.issue.aggregate({
-          where: {
-            resolvedAt: { not: null },
-            createdAt: { gte: start, lte: end },
-          },
-          _avg: {
-            resolvedAt: true,
-          },
-        })
-
         data = {
           issues: issueList,
           totalIssues: issueList.length,
-          avgResolutionTime: avgResolutionTime._avg.resolvedAt,
           period: { startDate, endDate },
         }
         break
