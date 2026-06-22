@@ -26,6 +26,7 @@ export default function IssuesPage() {
   const [priorityFilter, setPriorityFilter] = useState('')
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  const [showDeleteModal, setShowDeleteModal] = useState<string | null>(null)
 
   const fetchIssues = async () => {
     setLoading(true)
@@ -66,6 +67,23 @@ export default function IssuesPage() {
         {priority}
       </span>
     )
+  }
+
+  const handleDelete = async (id: string) => {
+    try {
+      const res = await fetch(`/api/issue/${id}`, { method: 'DELETE' })
+      const data = await res.json()
+      if (data.success) {
+        toast.success('Issue berhasil dihapus')
+        fetchIssues()
+      } else {
+        toast.error(data.message)
+      }
+    } catch (error) {
+      toast.error('Gagal menghapus')
+    } finally {
+      setShowDeleteModal(null)
+    }
   }
 
   const getStatusBadge = (status: string) => {
@@ -247,6 +265,24 @@ export default function IssuesPage() {
           </div>
         )}
       </div>
+
+      {/* Delete Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+          <div className="bg-card border border-border rounded-xl p-6 max-w-md w-full mx-4">
+            <h2 className="text-xl font-bold text-foreground mb-4">Delete Issue</h2>
+            <p className="text-muted-foreground mb-6">Apakah Anda yakin ingin menghapus aset ini? Tindakan ini tidak dapat dibatalkan.</p>
+            <div className="flex gap-3 justify-end">
+              <button onClick={() => setShowDeleteModal(null)} className="px-4 py-2 border border-border rounded-lg hover:bg-secondary transition-colors text-foreground">
+                CANCEL
+              </button>
+              <button onClick={() => handleDelete(showDeleteModal)} className="px-4 py-2 bg-destructive/20 hover:bg-destructive/30 border border-destructive/50 rounded-lg text-destructive transition-colors">
+                DELETE
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

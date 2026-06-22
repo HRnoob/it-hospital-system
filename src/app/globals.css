@@ -53,17 +53,20 @@
     font-family: 'Syne', sans-serif;
   }
 
+  /* Industrial monospace untuk data teknis */
   code, pre, .font-mono, .asset-code, .ticket-number, .ip-address {
     font-family: 'JetBrains Mono', monospace;
     font-weight: 500;
   }
 
+  /* Headings dengan karakter industrial */
   h1, h2, h3, .heading {
     font-family: 'Syne', sans-serif;
     font-weight: 700;
     letter-spacing: -0.02em;
   }
 
+  /* Glow effect untuk status active/critical */
   .glow-success {
     box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
   }
@@ -82,6 +85,7 @@
     50% { opacity: 0.7; }
   }
 
+  /* Noise texture overlay */
   .noise-bg {
     position: relative;
   }
@@ -95,6 +99,7 @@
     z-index: 1;
   }
 
+  /* Grid background untuk industrial feel */
   .grid-bg {
     background-image: 
       linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
@@ -102,6 +107,7 @@
     background-size: 24px 24px;
   }
 
+  /* Staggered animation untuk cards */
   .stagger-item {
     animation: fadeInUp 0.4s ease-out forwards;
     opacity: 0;
@@ -177,7 +183,7 @@ input, select, textarea {
 input:focus, select:focus, textarea:focus {
   border-color: hsl(var(--ring)) !important;
   outline: none;
-  outline-color: hsl(var(--ring)) !important;
+  ring-color: hsl(var(--ring)) !important;
 }
 
 /* Table overrides */
@@ -187,6 +193,15 @@ table {
 
 td, th {
   border-bottom-color: hsl(var(--border)) !important;
+}
+
+/* QR Code image fix */
+img[src*="/qrcodes/"] {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 200px;
+  max-height: 200px;
 }
 
 /* Button overrides */
@@ -233,12 +248,25 @@ option {
   border-top-color: hsl(var(--primary)) !important;
 }
 
-/* Fix hover putih di issues */
-.hover\:bg-gray-50:hover,
-.hover\:bg-white:hover,
-tr.hover\:bg-gray-50:hover,
-tr.hover\:bg-white:hover {
-  background-color: hsl(var(--secondary) / 0.5) !important;
+/* FIX KHUSUS ISSUES PAGE */
+.issues-table tbody tr:hover,
+table tbody tr:hover {
+  background-color: hsl(var(--secondary) / 0.3) !important;
+}
+
+.status-badge {
+  background-color: transparent !important;
+  border: 1px solid;
+}
+
+.status-badge-open {
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+.status-badge-resolved {
+  border-color: #10b981;
+  color: #10b981;
 }
 
 /* ==========================================
@@ -280,5 +308,41 @@ tr.hover\:bg-white:hover {
   
   .badge-info {
     @apply bg-primary/20 text-primary px-2 py-0.5 rounded text-xs font-mono;
+  }
+}
+
+/* ==========================================
+   PRINT STYLES
+   ========================================== */
+
+@media print {
+  /* Sembunyikan elemen yang tidak perlu saat print */
+  button, 
+  .no-print, 
+  .sidebar, 
+  nav, 
+  header:not(#report-content header),
+  .print-hide {
+    display: none !important;
+  }
+  
+  /* Background dan warna untuk print */
+  body, .bg-card, .bg-background {
+    background-color: white !important;
+    color: black !important;
+  }
+  
+  /* QR Code print fix */
+  .qr-card {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 10px;
+  }
+  
+  .qr-card img {
+    max-width: 150px;
+    max-height: 150px;
   }
 }

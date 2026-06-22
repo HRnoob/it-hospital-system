@@ -21,10 +21,13 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
-  Database
+  Database,
+  Settings,
+  BookOpen,
+  Activity,
+  Users
 } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { BookOpen } from 'lucide-react'
 
 const menuItems = [
   { icon: LayoutDashboard, label: 'DASHBOARD', href: '/dashboard' },
@@ -34,8 +37,11 @@ const menuItems = [
   { icon: KanbanSquare, label: 'KANBAN', href: '/kanban' },
   { icon: FileText, label: 'REPORTS', href: '/reports' },
   { icon: Monitor, label: 'REMOTE', href: '/remote' },
+  { icon: Users, label: 'TEAM', href: '/team' },
   { icon: Shield, label: 'ADMIN', href: '/admin/users' },
   { icon: Database, label: 'BACKUP', href: '/admin/backup' },
+  { icon: Activity, label: 'ACTIVITY LOG', href: '/admin/activity-log' },
+  { icon: Settings, label: 'SETTINGS', href: '/admin/settings' },
   { icon: BookOpen, label: 'MANUAL', href: '/manual' },
 ]
 
@@ -145,11 +151,11 @@ export default function DashboardLayout({
                 <div className="flex items-center gap-2 mb-1">
                   <div className="w-1 h-6 bg-primary rounded-full animate-pulse" />
                   <h1 className="text-2xl font-black tracking-tighter bg-gradient-to-r from-primary to-cyan-400 bg-clip-text text-transparent">
-                    IT HOSPITAL
+                    IT COMMAND CENTER
                   </h1>
                 </div>
                 <p className="text-[10px] font-mono text-muted-foreground tracking-[0.2em] ml-3">
-                  COMMAND CENTER
+                  RSUD MARIA WALANDA MARAMIS
                 </p>
                 <div className="flex items-center gap-2 mt-3 ml-3">
                   <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />

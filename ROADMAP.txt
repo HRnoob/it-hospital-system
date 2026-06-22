@@ -1,0 +1,182 @@
+================================================================================
+                    ROADMAP PENGEMBANGAN v2.0
+================================================================================
+
+🎯 FASE 1 - Bulan 1-2 (Stabilisasi & Feedback)
+================================================================================
+✅ Sistem berjalan normal
+✅ Kumpulkan feedback dari tim IT RS
+✅ Catat bug & error yang muncul
+✅ Optimasi performa jika perlu
+
+
+🎯 FASE 2 - Bulan 3 (Quality of Life)
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ FITUR 1: REMINDER MORNING CHECK ⏰                                          │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Status: 🔴 Belum │ Estimasi: 30 menit │ Prioritas: HIGH                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Deskripsi:                                                                  │
+│   Notifikasi di dashboard dan toast notification jika morning check         │
+│   belum diisi pada jam tertentu (misal jam 9 pagi).                         │
+│                                                                             │
+│ Teknis:                                                                     │
+│   - Cek waktu di client-side (useEffect dengan interval)                    │
+│   - Tampilkan banner/warning di dashboard                                   │
+│   - Toast notification setiap kali buka halaman jika belum isi              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ FITUR 2: SCHEDULED BACKUP OTOMATIS 💾                                       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Status: 🔴 Belum │ Estimasi: 1 jam │ Prioritas: HIGH                       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Deskripsi:                                                                  │
+│   Backup database otomatis setiap hari jam 02:00 pagi tanpa manual.         │
+│                                                                             │
+│ Teknis:                                                                     │
+│   - Menggunakan node-cron untuk scheduling                                  │
+│   - Backup otomatis ke folder /backups/auto/                               │
+│   - Hanya simpan 30 backup terakhir (rotasi otomatis)                       │
+│   - Log backup di activity log                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ FITUR 3: USER AVATAR UPLOAD 👤                                              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Status: 🔴 Belum │ Estimasi: 1 jam │ Prioritas: MEDIUM                     │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Deskripsi:                                                                  │
+│   User bisa upload foto profil (avatar) untuk personalisasi.                │
+│                                                                             │
+│ Teknis:                                                                     │
+│   - Upload file gambar (jpg/png) di halaman profile                         │
+│   - Simpan di folder /public/avatars/                                       │
+│   - Tampilkan di sidebar dan halaman user                                   │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ FITUR 4: EXPORT ACTIVITY LOG KE EXCEL 📊                                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Status: 🔴 Belum │ Estimasi: 30 menit │ Prioritas: MEDIUM                  │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Deskripsi:                                                                  │
+│   Export data activity log ke file Excel untuk laporan audit.               │
+│                                                                             │
+│ Teknis:                                                                     │
+│   - Tambah tombol "Export to Excel" di halaman activity log                 │
+│   - Gunakan library xlsx yang sudah ada                                     │
+│   - Export sesuai filter yang dipilih                                       │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+
+🎯 FASE 3 - Bulan 4-5 (Dashboard & Visualisasi)
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ FITUR 5: DASHBOARD WIDGET GRAFIK 📈                                         │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Status: 🔴 Belum │ Estimasi: 2-3 jam │ Prioritas: HIGH ⭐                   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Deskripsi:                                                                  │
+│   Tambah widget grafik di dashboard untuk visualisasi data.                 │
+│                                                                             │
+│ Komponen:                                                                   │
+│   1. Grafik Issues per Hari (7 hari terakhir) - Line Chart                  │
+│   2. Grafik Issues by Priority (Pie Chart) - sudah ada di reports           │
+│   3. SLA Compliance Trend - Line Chart                                      │
+│   4. Top 5 Aset Paling Sering Rusak - Bar Chart                            │
+│                                                                             │
+│ Teknis:                                                                     │
+│   - Sudah ada library Recharts                                              │
+│   - Fetch data dari API baru: /api/dashboard/charts                        │
+│   - Tampilkan di bawah stats cards                                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+
+🎯 FASE 4 - Bulan 6 (Polishing & Final)
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ FITUR 6: DARK MODE TOGGLE DI LOGIN PAGE 🌙                                  │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Status: 🔴 Belum │ Estimasi: 15 menit │ Prioritas: LOW                     │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Deskripsi:                                                                  │
+│   Tambah tombol dark/light mode di halaman login untuk konsistensi.         │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ FITUR 7: MOBILE RESPONSIVE ENHANCED 📱                                      │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Status: 🟡 Partial │ Estimasi: 2-3 jam │ Prioritas: MEDIUM                 │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Deskripsi:                                                                  │
+│   Perbaiki tampilan untuk akses dari HP (tablet & mobile).                  │
+│                                                                             │
+│ Komponen:                                                                   │
+│   - Sidebar collapse otomatis di mobile                                     │
+│   - Tabel jadi scroll horizontal                                            │
+│   - Ukuran font menyesuaikan                                                │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ FITUR 8: RE-EVALUASI & DEPLOYMENT 🚀                                        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Status: 🔴 Belum │ Estimasi: 1 minggu │ Prioritas: FINAL                   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Deskripsi:                                                                  │
+│   - Testing menyeluruh semua fitur                                          │
+│   - Fix bug dari feedback user                                              │
+│   - Dokumentasi update                                                      │
+│   - Deployment ke server production                                         │
+│   - Release v2.0                                                            │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+
+================================================================================
+📊 RINGKASAN PRIORITAS
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ NO │ FITUR                                      │ STATUS    │ ESTIMASI     │
+├────┼────────────────────────────────────────────┼───────────┼──────────────┤
+│ 1  │ Reminder Morning Check                     │ 🔴 Belum  │ 30 menit     │
+│ 2  │ Scheduled Backup Otomatis                  │ 🔴 Belum  │ 1 jam        │
+│ 3  │ User Avatar Upload                         │ 🔴 Belum  │ 1 jam        │
+│ 4  │ Export Activity Log ke Excel               │ 🔴 Belum  │ 30 menit     │
+│ 5  │ Dashboard Widget Grafik                    │ 🔴 Belum  │ 2-3 jam      │
+│ 6  │ Dark Mode Toggle di Login                  │ 🔴 Belum  │ 15 menit     │
+│ 7  │ Mobile Responsive Enhanced                 │ 🟡 Partial│ 2-3 jam      │
+│ 8  │ Re-evaluasi & Deployment v2.0              │ 🔴 Belum  │ 1 minggu     │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+
+================================================================================
+🎯 REKOMENDASI EKSEKUSI (URUTAN)
+================================================================================
+
+Minggu 1:  Reminder Morning Check (30 menit)
+Minggu 1:  Scheduled Backup Otomatis (1 jam)
+Minggu 2:  User Avatar Upload (1 jam)
+Minggu 2:  Export Activity Log ke Excel (30 menit)
+Minggu 3:  Dashboard Widget Grafik (2-3 jam)
+Minggu 3:  Dark Mode Toggle di Login (15 menit)
+Minggu 4:  Mobile Responsive Enhanced (2-3 jam)
+Minggu 4-5: Testing & Deployment v2.0
+
+
+================================================================================
+💡 CATATAN
+================================================================================
+
+- ✅ Export PDF: SUDAH ADA (via Print browser)
+- ✅ Export Excel: SUDAH ADA (di halaman Reports)
+- ⏳ Notifikasi WhatsApp: Ditunda (tunggu kebutuhan)
+- ⏳ Multi-language: Ditunda (SIMRS masih pihak ke-3)
+
+================================================================================
+                    IT HOSPITAL SYSTEM v2.0 - ROADMAP
+================================================================================

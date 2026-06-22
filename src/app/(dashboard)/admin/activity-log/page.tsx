@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { ChevronLeft, ChevronRight, ShieldAlert } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Search, Calendar, ShieldAlert, Filter } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 interface ActivityLog {
@@ -30,9 +30,10 @@ export default function ActivityLogPage() {
     startDate: '',
     endDate: '',
   })
+  const [search, setSearch] = useState('')
 
-  const modules = ['INVENTORY', 'ISSUE', 'KANBAN', 'MORNING_CHECK', 'USER', 'AUTH']
-  const actions = ['CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT', 'EXPORT_PDF']
+  const modules = ['AUTH', 'INVENTORY', 'ISSUE', 'KANBAN', 'MORNING_CHECK', 'USER', 'BACKUP']
+  const actions = ['CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT', 'EXPORT_PDF', 'BACKUP']
 
   useEffect(() => {
     checkAuth()
@@ -42,7 +43,7 @@ export default function ActivityLogPage() {
     if (userRole === 'SUPERADMIN') {
       fetchLogs()
     }
-  }, [page, filters, userRole])
+  }, [page, filters, search, userRole])
 
   const checkAuth = async () => {
     try {
@@ -71,6 +72,7 @@ export default function ActivityLogPage() {
       const params = new URLSearchParams({
         page: page.toString(),
         limit: '50',
+        ...(search && { search }),
         ...(filters.module && { module: filters.module }),
         ...(filters.action && { action: filters.action }),
         ...(filters.startDate && { startDate: filters.startDate }),
@@ -95,12 +97,30 @@ export default function ActivityLogPage() {
       UPDATE: 'bg-yellow-500/20 text-yellow-500 border border-yellow-500/30',
       DELETE: 'bg-red-500/20 text-red-500 border border-red-500/30',
       LOGIN: 'bg-blue-500/20 text-blue-500 border border-blue-500/30',
-      LOGOUT: 'bg-gray-500/20 text-gray-500 border border-gray-500/30',
+      LOGOUT: 'bg-gray-500/20 text-gray-400 border border-gray-500/30',
       EXPORT_PDF: 'bg-purple-500/20 text-purple-500 border border-purple-500/30',
+      BACKUP: 'bg-cyan-500/20 text-cyan-500 border border-cyan-500/30',
     }
     return (
-      <span className={`px-2 py-1 rounded text-xs font-mono font-bold ${styles[action] || 'bg-secondary text-muted-foreground border border-border'}`}>
+      <span className={`px-2 py-1 rounded text-xs font-mono ${styles[action] || 'bg-secondary text-muted-foreground'}`}>
         {action}
+      </span>
+    )
+  }
+
+  const getModuleBadge = (module: string) => {
+    const styles: Record<string, string> = {
+      AUTH: 'bg-purple-500/20 text-purple-500',
+      INVENTORY: 'bg-blue-500/20 text-blue-500',
+      ISSUE: 'bg-red-500/20 text-red-500',
+      KANBAN: 'bg-yellow-500/20 text-yellow-500',
+      MORNING_CHECK: 'bg-green-500/20 text-green-500',
+      USER: 'bg-pink-500/20 text-pink-500',
+      BACKUP: 'bg-cyan-500/20 text-cyan-500',
+    }
+    return (
+      <span className={`px-2 py-1 rounded text-xs font-mono ${styles[module] || 'bg-secondary text-muted-foreground'}`}>
+        {module}
       </span>
     )
   }
@@ -108,22 +128,19 @@ export default function ActivityLogPage() {
   if (checking) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     )
   }
 
   if (userRole !== 'SUPERADMIN') {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-12 text-center">
+      <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-12 text-center">
         <ShieldAlert className="w-16 h-16 text-red-500 mx-auto mb-4" />
-        <h2 className="text-xl font-bold text-red-700">Akses Ditolak</h2>
-        <p className="text-red-600 mt-2">Halaman ini hanya dapat diakses oleh SUPERADMIN.</p>
-        <button
-          onClick={() => router.push('/dashboard')}
-          className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-        >
-          Kembali ke Dashboard
+        <h2 className="text-xl font-bold text-red-500">ACCESS DENIED</h2>
+        <p className="text-red-500/80 mt-2 font-mono">Halaman ini hanya dapat diakses oleh SUPERADMIN.</p>
+        <button onClick={() => router.push('/dashboard')} className="mt-4 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 rounded-lg text-red-500 transition-colors">
+          BACK TO DASHBOARD
         </button>
       </div>
     )
@@ -131,65 +148,84 @@ export default function ActivityLogPage() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Activity Log</h1>
-        <p className="text-gray-500 mt-1">Riwayat aktivitas semua user dalam sistem</p>
+      {/* Header Industrial */}
+      <div className="mb-8 border-b border-border pb-4">
+        <div className="flex items-center gap-3">
+          <div className="w-1 h-8 bg-primary rounded-full animate-pulse" />
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">ACTIVITY LOG</h1>
+          <span className="text-xs text-muted-foreground font-mono ml-auto">
+            Real-time User Activity
+          </span>
+        </div>
+        <p className="text-muted-foreground font-mono text-sm mt-2 ml-4">
+          Audit Trail — Monitor Semua Aktivitas User
+        </p>
       </div>
 
-      {/* Filters */}
-      <div className="bg-card border border-border rounded-lg shadow p-4 mb-6">
+      {/* Search & Filters */}
+      <div className="bg-card border border-border rounded-xl p-4 mb-6">
+        <div className="flex flex-col md:flex-row gap-4 mb-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Cari user, target, atau aktivitas..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background text-foreground placeholder:text-muted-foreground/50 font-mono text-sm"
+            />
+          </div>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <select
             value={filters.module}
             onChange={(e) => setFilters({ ...filters, module: e.target.value })}
-            className="p-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            className="p-2 border border-border rounded-lg bg-background text-foreground font-mono text-sm"
           >
-            <option value="">Semua Modul</option>
+            <option value="">SEMUA MODUL</option>
             {modules.map((m) => (
-              <option key={m} value={m}>
-                {m}
-              </option>
+              <option key={m} value={m}>{m}</option>
             ))}
           </select>
           <select
             value={filters.action}
             onChange={(e) => setFilters({ ...filters, action: e.target.value })}
-            className="p-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            className="p-2 border border-border rounded-lg bg-background text-foreground font-mono text-sm"
           >
-            <option value="">Semua Aksi</option>
+            <option value="">SEMUA AKSI</option>
             {actions.map((a) => (
-              <option key={a} value={a}>
-                {a}
-              </option>
+              <option key={a} value={a}>{a}</option>
             ))}
           </select>
           <input
             type="date"
             value={filters.startDate}
             onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
-            className="p-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            className="p-2 border border-border rounded-lg bg-background text-foreground font-mono text-sm"
+            placeholder="Mulai"
           />
           <input
             type="date"
             value={filters.endDate}
             onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
-            className="p-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            className="p-2 border border-border rounded-lg bg-background text-foreground font-mono text-sm"
+            placeholder="Akhir"
           />
         </div>
       </div>
 
       {/* Table */}
-      <div className="bg-card border border-border rounded-lg shadow overflow-hidden">
+      <div className="bg-card border border-border rounded-xl shadow overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-secondary border-b border-border">
               <tr>
-                <th className="text-left px-6 py-3 text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider">Waktu</th>
-                <th className="text-left px-6 py-3 text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider">User</th>
-                <th className="text-left px-6 py-3 text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider">Aksi</th>
-                <th className="text-left px-6 py-3 text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider">Modul</th>
-                <th className="text-left px-6 py-3 text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider">Target</th>
-                <th className="text-left px-6 py-3 text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider">IP Address</th>
+                <th className="text-left px-6 py-3 text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider">WAKTU</th>
+                <th className="text-left px-6 py-3 text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider">USER</th>
+                <th className="text-left px-6 py-3 text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider">AKSI</th>
+                <th className="text-left px-6 py-3 text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider">MODUL</th>
+                <th className="text-left px-6 py-3 text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider">TARGET</th>
+                <th className="text-left px-6 py-3 text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider">IP ADDRESS</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -217,15 +253,9 @@ export default function ActivityLogPage() {
                       <p className="text-xs font-mono text-muted-foreground">{log.user.email}</p>
                     </td>
                     <td className="px-6 py-4">{getActionBadge(log.action)}</td>
-                    <td className="px-6 py-4">
-                      <span className="text-xs font-mono text-muted-foreground">{log.module}</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm text-foreground">{log.targetName || '-'}</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-xs font-mono text-muted-foreground">{log.ipAddress || '-'}</span>
-                    </td>
+                    <td className="px-6 py-4">{getModuleBadge(log.module)}</td>
+                    <td className="px-6 py-4 text-sm text-foreground">{log.targetName || '-'}</td>
+                    <td className="px-6 py-4 text-xs font-mono text-muted-foreground">{log.ipAddress || '-'}</td>
                   </tr>
                 ))
               )}
@@ -239,7 +269,7 @@ export default function ActivityLogPage() {
             <button
               onClick={() => setPage(p => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="flex items-center gap-1 px-3 py-1 border border-border rounded-lg disabled:opacity-50 hover:bg-secondary transition-colors font-mono text-sm"
+              className="flex items-center gap-1 px-3 py-1 border border-border rounded-lg disabled:opacity-50 hover:bg-secondary transition-colors font-mono text-sm text-foreground"
             >
               <ChevronLeft className="w-4 h-4" />
               PREV
@@ -250,7 +280,7 @@ export default function ActivityLogPage() {
             <button
               onClick={() => setPage(p => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
-              className="flex items-center gap-1 px-3 py-1 border border-border rounded-lg disabled:opacity-50 hover:bg-secondary transition-colors font-mono text-sm"
+              className="flex items-center gap-1 px-3 py-1 border border-border rounded-lg disabled:opacity-50 hover:bg-secondary transition-colors font-mono text-sm text-foreground"
             >
               NEXT
               <ChevronRight className="w-4 h-4" />

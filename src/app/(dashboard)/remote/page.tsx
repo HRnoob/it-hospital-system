@@ -66,12 +66,12 @@ export default function RemotePage() {
   }
 
   const handleRustDeskConnect = (rustdeskId: string, deviceName: string) => {
-    // Log session (opsional)
+    // Hapus spasi dari ID
+    const cleanId = rustdeskId.replace(/\s/g, '')
+    const url = `rustdesk://connect/${cleanId}`
+    
     console.log(`Remote access to ${deviceName} via RustDesk at ${new Date().toISOString()}`)
-    
-    // Buka RustDesk client
-    window.open(`rustdesk://connect/${rustdeskId}`, '_blank')
-    
+    window.open(url, '_blank')
     toast.success(`Menghubungkan ke ${deviceName}...`)
   }
 

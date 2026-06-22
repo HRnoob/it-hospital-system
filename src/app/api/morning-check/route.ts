@@ -2,9 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import jwt from 'jsonwebtoken'
 import { cookies } from 'next/headers'
+import { logActivity } from '@/lib/logger'
+import { getRequestInfo } from '@/lib/request-info'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-jwt-key-32-chars-minimum!'
+const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-jwt-key-32-chars-minimum'
 
+// ========== GET Morning Check hari ini (GLOBAL) ==========
 export async function GET() {
   try {
     const cookieStore = cookies()
@@ -17,15 +20,15 @@ export async function GET() {
       )
     }
 
-    const decoded = jwt.verify(token, JWT_SECRET) as { id: string }
+    jwt.verify(token, JWT_SECRET)
 
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
+    // Cek apakah sudah ada morning check untuk hari ini (GLOBAL, bukan per user)
     const check = await prisma.morningCheck.findFirst({
       where: {
         checkDate: today,
-        filledById: decoded.id,
       },
       include: {
         filledBy: {
@@ -47,6 +50,7 @@ export async function GET() {
   }
 }
 
+// ========== POST / PUT Morning Check (GLOBAL) ==========
 export async function POST(request: NextRequest) {
   try {
     const cookieStore = cookies()
@@ -59,20 +63,24 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const decoded = jwt.verify(token, JWT_SECRET) as { id: string }
+    const decoded = jwt.verify(token, JWT_SECRET) as { id: string; name: string; role: string }
     const body = await request.json()
 
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
+    // Cek apakah sudah ada morning check untuk hari ini (GLOBAL)
     const existing = await prisma.morningCheck.findFirst({
       where: {
         checkDate: today,
-        filledById: decoded.id,
       },
     })
 
+    // Get IP and User Agent untuk logging
+    const { ipAddress, userAgent } = getRequestInfo(request)
+
     if (existing) {
+      // UPDATE: Jika sudah ada, update dengan data baru
       const updated = await prisma.morningCheck.update({
         where: { id: existing.id },
         data: {
@@ -96,10 +104,24 @@ export async function POST(request: NextRequest) {
           notes: body.notes,
           overallStatus: body.overallStatus,
           completedAt: new Date(),
+          filledById: decoded.id, // Siapa yang terakhir update
         },
       })
+
+      // Log update activity
+      logActivity({
+        userId: decoded.id,
+        action: 'UPDATE',
+        module: 'MORNING_CHECK',
+        targetName: `Morning check ${today.toISOString().split('T')[0]}`,
+        detail: { overallStatus: body.overallStatus },
+        ipAddress,
+        userAgent,
+      }).catch(console.error)
+
       return NextResponse.json({ success: true, data: updated })
     } else {
+      // CREATE: Buat baru
       const created = await prisma.morningCheck.create({
         data: {
           checkDate: today,
@@ -126,6 +148,18 @@ export async function POST(request: NextRequest) {
           completedAt: new Date(),
         },
       })
+
+      // Log create activity
+      logActivity({
+        userId: decoded.id,
+        action: 'CREATE',
+        module: 'MORNING_CHECK',
+        targetName: `Morning check ${today.toISOString().split('T')[0]}`,
+        detail: { overallStatus: body.overallStatus },
+        ipAddress,
+        userAgent,
+      }).catch(console.error)
+
       return NextResponse.json({ success: true, data: created })
     }
   } catch (error) {

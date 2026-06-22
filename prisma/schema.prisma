@@ -14,6 +14,7 @@ model User {
   email        String   @unique
   password     String
   role         Role     @default(VIEWER)
+  supportLevel SupportLevel @default(L1)
   avatar       String?
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
@@ -25,8 +26,15 @@ model User {
   issuesAssigned  Issue[]        @relation("AssignedTo")
   checklistFilled MorningCheck[]
   maintenanceDone MaintenanceLog[]
+  assetMovements  AssetMovement[]  // ← TAMBAHKAN INI
 
   @@map("users")
+}
+
+enum SupportLevel {
+  L1
+  L2
+  L3
 }
 
 enum Role {
@@ -48,11 +56,14 @@ model AssetCategory {
 }
 
 model Location {
-  id        String  @id @default(cuid())
-  name      String  @unique
+  id        String   @id @default(cuid())
+  name      String   @unique
   floor     String?
   building  String?
   assets    Asset[]
+
+  fromMovements   AssetMovement[] @relation("FromLocation")  // ← TAMBAHKAN
+  toMovements     AssetMovement[] @relation("ToLocation")    // ← TAMBAHKAN
 
   @@map("locations")
 }
@@ -90,6 +101,7 @@ model Asset {
   maintenanceLogs MaintenanceLog[]
   photos          AssetPhoto[]
   networkLinks    NetworkAsset[]
+  movements       AssetMovement[]  // ← TAMBAHKAN INI
 
   @@map("assets")
 }
@@ -108,6 +120,23 @@ enum AssetCondition {
   FAIR
   POOR
   BROKEN
+}
+
+model AssetMovement {
+  id              String   @id @default(cuid())
+  asset           Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  assetId         String
+  fromLocation    Location? @relation("FromLocation", fields: [fromLocationId], references: [id])
+  fromLocationId  String?
+  toLocation      Location? @relation("ToLocation", fields: [toLocationId], references: [id])
+  toLocationId    String?
+  movedBy         User     @relation(fields: [movedById], references: [id])
+  movedById       String
+  reason          String?  // "Pemindahan Ruangan", "Mutasi Karyawan", "Perbaikan", dll
+  notes           String?
+  movedAt         DateTime @default(now())
+
+  @@map("asset_movements")
 }
 
 model AssetPhoto {
@@ -170,7 +199,7 @@ enum Priority {
 
 model IssueTimeline {
   id          String   @id @default(cuid())
-  issue       Issue    @relation(fields: [issueId], references: [id])
+  issue       Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
   issueId     String
   action      String
   description String?
@@ -182,7 +211,7 @@ model IssueTimeline {
 
 model IssuePhoto {
   id        String    @id @default(cuid())
-  issue     Issue     @relation(fields: [issueId], references: [id])
+  issue     Issue     @relation(fields: [issueId], references: [id], onDelete: Cascade)
   issueId   String
   url       String
   type      PhotoType

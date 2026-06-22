@@ -55,6 +55,7 @@ export default function DashboardPage() {
   })
   const [networkDevices, setNetworkDevices] = useState<NetworkDevice[]>([])
   const [notifications, setNotifications] = useState<Notification[]>([])
+  const [settings, setSettings] = useState<any>({})
 
   useEffect(() => {
     // Fetch stats
@@ -86,6 +87,14 @@ export default function DashboardPage() {
         }
       })
       .catch(console.error)
+
+    fetch('/api/settings')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) 
+          setSettings(data.data)
+      })
+      .catch(console.error)
   }, [])
 
   const statsCards = [
@@ -95,7 +104,7 @@ export default function DashboardPage() {
       icon: Server,
       status: stats.uptime > 99 ? 'success' : 'warning',
       description: 'Last 30 days',
-      href: '/reports'
+      href: '/morning-check',  // ← GANTI JADI INI (bukan /reports)
     },
     {
       title: 'ACTIVE ASSETS',
@@ -145,13 +154,15 @@ export default function DashboardPage() {
       <div className="mb-8 border-b border-border pb-4">
         <div className="flex items-center gap-3">
           <div className="w-1 h-8 bg-primary rounded-full animate-pulse" />
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">SYSTEM STATUS</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
+            {settings?.branding?.find((s: any) => s.key === 'app_name')?.value || 'IT HOSPITAL'}
+          </h1>
           <span className="text-xs text-muted-foreground font-mono ml-auto">
             {new Date().toLocaleTimeString()}
           </span>
         </div>
         <p className="text-muted-foreground font-mono text-sm mt-2 ml-4">
-          IT Command Center — Real-time Monitoring
+          {settings?.identity?.find((s: any) => s.key === 'hospital_name')?.value || 'IT Command Center'} — Real-time Monitoring
         </p>
       </div>
 

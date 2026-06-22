@@ -21,7 +21,7 @@ export default function MorningCheckPage() {
   const [pinging, setPinging] = useState(false)
   const [existingCheck, setExistingCheck] = useState<any>(null)
   const [radarActive, setRadarActive] = useState(false)
-  const [showEditConfirm, setShowEditConfirm] = useState(false)
+  const [user, setUser] = useState<any>(null)
 
   const [pingResults, setPingResults] = useState<PingResult[]>([
     { name: 'Google DNS', host: '8.8.8.8', status: 'UNCHECKED', latency: null },
@@ -46,6 +46,17 @@ export default function MorningCheckPage() {
     overallStatus: 'NORMAL' as OverallStatus,
   })
 
+  // Ambil user info
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) setUser(data.data)
+      })
+      .catch(console.error)
+  }, [])
+
+  // Cek morning check hari ini (GLOBAL)
   useEffect(() => {
     fetch('/api/morning-check')
       .then(res => res.json())
@@ -110,21 +121,6 @@ export default function MorningCheckPage() {
     } finally {
       setPinging(false)
       setTimeout(() => setRadarActive(false), 1000)
-    }
-  }
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'OK':
-      case 'RUNNING':
-        return <CheckCircle className="w-4 h-4 text-green-500" />
-      case 'SLOW':
-      case 'DEGRADED':
-        return <AlertTriangle className="w-4 h-4 text-yellow-500" />
-      case 'DOWN':
-        return <XCircle className="w-4 h-4 text-red-500" />
-      default:
-        return <Clock className="w-4 h-4 text-muted-foreground" />
     }
   }
 
@@ -193,7 +189,31 @@ export default function MorningCheckPage() {
       if (data.success) {
         toast.success('Morning check berhasil disimpan!')
         setExistingCheck(data.data)
-        setShowEditConfirm(false)
+        // Refresh form dengan data terbaru
+        if (data.data.pingLatencyMs) {
+          const latency = data.data.pingLatencyMs as any
+          setPingResults([
+            { name: 'Google DNS', host: '8.8.8.8', status: data.data.pingGoogle, latency: latency.google },
+            { name: 'Server SIMRS', host: '10.0.101.192', status: data.data.pingSimrs, latency: latency.simrs },
+            { name: 'Server Database', host: '10.0.101.191', status: data.data.pingDatabase, latency: latency.db },
+          ])
+        }
+        setForm({
+          simrsStatus: data.data.simrsStatus,
+          pacsStatus: data.data.pacsStatus,
+          unifiedStatus: data.data.unifiedStatus,
+          upsStatus: data.data.upsStatus,
+          cableStatus: data.data.cableStatus,
+          serverTempOk: data.data.serverTempOk || false,
+          acStatus: data.data.acStatus,
+          prtgAlertCount: data.data.prtgAlertCount,
+          prtgNotes: data.data.prtgNotes || '',
+          totalAP: data.data.totalAP,
+          onlineAP: data.data.onlineAP,
+          offlineAPList: data.data.offlineAPList ? JSON.stringify(data.data.offlineAPList) : '',
+          notes: data.data.notes || '',
+          overallStatus: data.data.overallStatus,
+        })
       } else {
         toast.error('Gagal menyimpan')
       }
@@ -204,36 +224,7 @@ export default function MorningCheckPage() {
     }
   }
 
-  const handleEditConfirm = () => {
-    setExistingCheck(null)
-    setShowEditConfirm(false)
-  }
-
-  const handleEditCancel = () => {
-    setShowEditConfirm(false)
-  }
-
-  // Edit Confirm Modal
-  if (showEditConfirm) {
-    return (
-      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-        <div className="bg-card border border-border rounded-xl p-6 max-w-md w-full mx-4">
-          <h2 className="text-xl font-bold text-foreground mb-4">Morning Check</h2>
-          <p className="text-muted-foreground mb-6">Morning check hari ini sudah diisi. Lanjutkan edit?</p>
-          <div className="flex gap-3 justify-end">
-            <button onClick={handleEditCancel} className="px-4 py-2 border border-border rounded-lg hover:bg-secondary transition-colors text-foreground font-mono">
-              CANCEL
-            </button>
-            <button onClick={handleEditConfirm} className="px-4 py-2 bg-primary/20 hover:bg-primary/30 border border-primary/50 rounded-lg text-primary transition-colors font-mono">
-              EDIT
-            </button>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  // View Existing Check (Read-only)
+  // Tampilan READ-ONLY (jika sudah ada morning check hari ini)
   if (existingCheck) {
     return (
       <div className="max-w-7xl mx-auto">
@@ -252,20 +243,32 @@ export default function MorningCheckPage() {
         </div>
 
         <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-4 mb-6">
-          <div className="flex items-center gap-3">
-            <CheckCircle className="w-5 h-5 text-green-500" />
-            <p className="text-green-500 font-mono text-sm">
-              CHECKLIST COMPLETED — {new Date(existingCheck.completedAt).toLocaleTimeString()}
-            </p>
-            <button
-              onClick={() => setShowEditConfirm(true)}
-              className="ml-auto text-xs font-mono text-green-500 hover:text-green-400 transition-colors"
-            >
-              [EDIT]
-            </button>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <CheckCircle className="w-5 h-5 text-green-500" />
+              <div>
+                <p className="text-green-500 font-mono text-sm">
+                  CHECKLIST COMPLETED — {new Date(existingCheck.completedAt).toLocaleTimeString()}
+                </p>
+                <p className="text-green-500/70 text-xs font-mono mt-0.5">
+                  Diisi oleh: {existingCheck.filledBy?.name || 'Unknown'}
+                </p>
+              </div>
+            </div>
+            {user?.role === 'SUPERADMIN' || user?.role === 'ADMIN' ? (
+              <button
+                onClick={() => setExistingCheck(null)}
+                className="text-xs font-mono text-green-500 hover:text-green-400 transition-colors px-3 py-1 border border-green-500/30 rounded-lg"
+              >
+                EDIT
+              </button>
+            ) : (
+              <span className="text-xs font-mono text-muted-foreground">Hanya Admin yang bisa edit</span>
+            )}
           </div>
         </div>
 
+        {/* Tampilan Read-Only sama seperti sebelumnya... */}
         <div className="bg-card border border-border rounded-xl p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -327,7 +330,7 @@ export default function MorningCheckPage() {
     )
   }
 
-  // Form untuk create new check
+  // Form untuk create/update morning check
   return (
     <div className="max-w-7xl mx-auto">
       {/* Header Industrial */}

@@ -22,7 +22,6 @@ export default function ManualPage() {
       .then(data => {
         if (data.success) {
           setSections(data.data.sections)
-          // Expand all sections by default
           const expanded: Record<number, boolean> = {}
           data.data.sections.forEach((_: any, idx: number) => {
             expanded[idx] = true
@@ -78,7 +77,7 @@ export default function ManualPage() {
               <h1 className="text-3xl font-bold tracking-tight text-foreground">MANUAL BOOK</h1>
             </div>
             <p className="text-muted-foreground font-mono text-sm mt-2 ml-4">
-              User Guide — IT Hospital System
+              User Guide — IT Hospital System v1.0
             </p>
           </div>
           <button
@@ -155,7 +154,7 @@ export default function ManualPage() {
       {/* Footer */}
       <div className="mt-8 pt-4 border-t border-border text-center">
         <p className="text-xs font-mono text-muted-foreground">
-          IT Hospital System v1.0.0 | Last Updated: {new Date().toLocaleDateString('id-ID')}
+          IT Hospital System v1.0 | Last Updated: {new Date().toLocaleDateString('id-ID')}
         </p>
         <p className="text-xs font-mono text-muted-foreground/70 mt-1">
           Untuk bantuan lebih lanjut, hubungi SUPERADMIN

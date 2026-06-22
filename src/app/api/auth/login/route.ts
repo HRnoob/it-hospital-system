@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { prisma } from '@/lib/prisma'
+import { logActivity } from '@/lib/logger'
+import { getRequestInfo } from '@/lib/request-info'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-jwt-key-32-chars-minimum!'
 
@@ -56,6 +58,19 @@ export async function POST(request: NextRequest) {
       { expiresIn: '7d' }
     )
 
+    // Get IP and User Agent untuk logging
+    const { ipAddress, userAgent } = getRequestInfo(request)
+
+    // Log login activity (async, tidak blocking response)
+    logActivity({
+      userId: user.id,
+      action: 'LOGIN',
+      module: 'AUTH',
+      targetName: user.email,
+      ipAddress,
+      userAgent,
+    }).catch(console.error)
+
     // BUAT RESPONSE DENGAN COOKIE MANUAL
     const response = NextResponse.json({
       success: true,
@@ -67,7 +82,7 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // Method MANUAL untuk set cookie
+    // Set cookie
     response.cookies.set('accessToken', accessToken, {
       httpOnly: true,
       secure: false,

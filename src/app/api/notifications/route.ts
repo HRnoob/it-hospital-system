@@ -19,9 +19,12 @@ export async function GET() {
     const notifications = []
 
     // 1. Cek morning check hari ini
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    
     const todayMorningCheck = await prisma.morningCheck.findFirst({
       where: {
-        checkDate: new Date()
+        checkDate: today
       }
     })
 
@@ -63,21 +66,31 @@ export async function GET() {
     const slaDeadlines = await prisma.issue.findMany({
       where: {
         status: { notIn: ['RESOLVED', 'CLOSED'] },
-        slaDeadline: { lte: twoHoursFromNow, gte: new Date() },
+        slaDeadline: { 
+          lte: twoHoursFromNow, 
+          gte: new Date(),
+          not: null 
+        },
         slaBreached: false
       },
       take: 5
     })
 
     slaDeadlines.forEach(issue => {
-      notifications.push({
-        id: `sla-${issue.id}`,
-        type: 'warning',
-        title: 'SLA Deadline Mendekat',
-        message: `${issue.title} - Deadline dalam ${Math.ceil((new Date(issue.slaDeadline).getTime() - new Date().getTime()) / (1000 * 60 * 60))} jam`,
-        action: `/issues/${issue.id}`,
-        actionLabel: 'Lihat Detail'
-      })
+      if (issue.slaDeadline) {
+        const deadlineTime = new Date(issue.slaDeadline).getTime()
+        const nowTime = new Date().getTime()
+        const hoursLeft = Math.ceil((deadlineTime - nowTime) / (1000 * 60 * 60))
+        
+        notifications.push({
+          id: `sla-${issue.id}`,
+          type: 'warning',
+          title: 'SLA Deadline Mendekat',
+          message: `${issue.title} - Deadline dalam ${hoursLeft} jam`,
+          action: `/issues/${issue.id}`,
+          actionLabel: 'Lihat Detail'
+        })
+      }
     })
 
     // 4. Cek garansi aset yang akan habis dalam 30 hari
@@ -86,21 +99,58 @@ export async function GET() {
 
     const expiringWarranties = await prisma.asset.findMany({
       where: {
-        warrantyExpiry: { lte: thirtyDaysFromNow, gte: new Date() }
+        warrantyExpiry: { 
+          lte: thirtyDaysFromNow, 
+          gte: new Date(),
+          not: null
+        }
       },
       include: { category: true },
       take: 5
     })
 
     expiringWarranties.forEach(asset => {
-      const daysLeft = Math.ceil((new Date(asset.warrantyExpiry).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+      if (asset.warrantyExpiry) {
+        const daysLeft = Math.ceil((new Date(asset.warrantyExpiry).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+        notifications.push({
+          id: `warranty-${asset.id}`,
+          type: 'info',
+          title: 'Garansi Akan Habis',
+          message: `${asset.name} - Garansi habis dalam ${daysLeft} hari`,
+          action: `/inventory/${asset.id}`,
+          actionLabel: 'Lihat Aset'
+        })
+      }
+    })
+
+    // 5. Cek ticket yang perlu di-eskalasi (pending L2)
+    // Gunakan raw query atau restructure karena supportLevel belum terindex dengan baik
+    const pendingEscalation = await prisma.issue.findMany({
+      where: {
+        status: 'OPEN',
+        priority: { in: ['CRITICAL', 'HIGH'] },
+      },
+      include: {
+        assignedTo: {
+          select: { supportLevel: true, name: true }
+        }
+      },
+      take: 5
+    })
+
+    // Filter di JavaScript (karena Prisma belum support nested where on enum)
+    const filteredEscalations = pendingEscalation.filter(
+      issue => issue.assignedTo?.supportLevel === 'L1'
+    )
+
+    filteredEscalations.forEach(issue => {
       notifications.push({
-        id: `warranty-${asset.id}`,
-        type: 'info',
-        title: 'Garansi Akan Habis',
-        message: `${asset.name} - Garansi habis dalam ${daysLeft} hari`,
-        action: `/inventory/${asset.id}`,
-        actionLabel: 'Lihat Aset'
+        id: `escalate-${issue.id}`,
+        type: 'warning',
+        title: 'Ticket Perlu Eskalasi',
+        message: `${issue.title} - Butuh penanganan L2`,
+        action: `/issues/${issue.id}`,
+        actionLabel: 'Proses Ticket'
       })
     })
 
